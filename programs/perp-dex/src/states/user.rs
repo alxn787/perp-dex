@@ -1,7 +1,8 @@
 use anchor_lang::prelude::*;
+use crate::order::Order;
 
 #[account]
 pub struct User {
     pub pubkey: Pubkey,
-    pub orders: [Orders; 8],
+    pub orders: [Order; 8],
 }
