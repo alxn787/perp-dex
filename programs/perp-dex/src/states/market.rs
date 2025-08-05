@@ -11,5 +11,5 @@ pub struct Market {
     pub max_leverage: u64,
     pub margin_ratio_initial: u64,
     pub margin_ratio_maintainance: u64,
-    pub amm: &Amm,
-}x
+    pub amm: Amm,
+}
