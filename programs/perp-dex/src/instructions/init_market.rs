@@ -1,17 +1,17 @@
 use anchor_lang::prelude::*;
-use crate::states::market::Market;
+use crate::states::*;
 #[derive(Accounts)]
 pub struct InitializePerpMarket<'info> {
     #[account(init,
         payer = authority,
-        space = 8 + Market::LEN,
+        space = PerpMarket::LEN,
         seeds = [
-            b"perp_market".as_ref(),
+            b"perp_market".as_ref(), 
               
         ],
         bump
     )]
-    pub market: Account<'info, Market>,
+    pub market: Account<'info, PerpMarket>,
 
     #[account(mut)]
     pub authority: Signer<'info>,

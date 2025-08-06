@@ -2,7 +2,7 @@ use anchor_lang::prelude::*;
 use crate::amm::Amm;
 
 #[account]
-pub struct Market {
+pub struct PerpMarket {
     pub market_index: u64,
     pub authority: Pubkey,
     pub liquidator_fee: u64,
@@ -11,3 +11,4 @@ pub struct Market {
     pub margin_ratio_maintainance: u64,
     pub amm: Amm,
 }
+
