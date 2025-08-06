@@ -8,3 +8,5 @@ pub mod user;
 pub use user::*;
 pub mod state;
 pub use state::*;
+pub mod position;
+pub use position::*;
