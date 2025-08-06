@@ -3,6 +3,7 @@ use crate::order::Order;
 
 #[account]
 pub struct User {
-    pub pubkey: Pubkey,
+    pub authority: Pubkey,
     pub orders: [Order; 8],
+    pub total_collateral: u64,
 }

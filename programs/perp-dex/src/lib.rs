@@ -11,7 +11,7 @@ declare_id!("B2NX28c1xjFMokwTSDDFpoB4XJPXaTJQ53EkeR6xzFsA");
 pub mod perp_dex {
     use super::*;
 
-    pub fn initialize_market(ctx: Context<InitializeMarket>) -> Result<()> {
+    pub fn initialize_market(ctx: Context<InitializePerpMarket>) -> Result<()> {
         msg!("Greetings from: {:?}", ctx.program_id);
         Ok(())
     }

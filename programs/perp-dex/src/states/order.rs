@@ -26,4 +26,5 @@ pub struct Order {
     pub price: u64,
     pub direction: PositionDirection,
     pub order_type: OrderType,
+    pub leverage: u64,
 }
