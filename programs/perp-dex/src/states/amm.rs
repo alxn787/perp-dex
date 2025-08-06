@@ -1,4 +1,4 @@
-use anchor_lang::{prelude::*, solana_program::clock::UnixTimestamp};
+use anchor_lang::prelude::*;
 
 #[account]
 pub struct Amm {
@@ -7,6 +7,11 @@ pub struct Amm {
     pub quote_asset_reserve: u64,
     pub sqrt_k: u64,
     pub last_funding_rate: u64,
-    pub last_funding_rate_ts: UnixTimestamp,
+    pub last_funding_rate_ts: i64,
     pub amm_price: u64,
+}
+
+impl Amm {
+    pub const LEN: usize = 8 + 32 + 8 + 8 + 8 + 8 + 8 + 8;
+    
 }

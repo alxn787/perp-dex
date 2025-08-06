@@ -1,15 +1,13 @@
 use anchor_lang::prelude::*;
-use crate::borsh::BorshSerialize;
-use crate::borsh::BorshDeserialize;
 
-#[derive(Clone, Copy, BorshSerialize, BorshDeserialize, PartialEq, Debug, Eq, Default)]
+#[derive(Clone, Copy, AnchorSerialize, AnchorDeserialize, PartialEq, Debug, Eq, Default)]
 pub enum PositionDirection {
     #[default]
     Long,
     Short,
 }
 
-#[derive(Clone, Copy, BorshSerialize, BorshDeserialize, PartialEq, Debug, Eq, Default)]
+#[derive(Clone, Copy, AnchorSerialize, AnchorDeserialize, PartialEq, Debug, Eq, Default)]
 pub enum OrderType {
     Market,
     #[default]
@@ -27,4 +25,8 @@ pub struct Order {
     pub direction: PositionDirection,
     pub order_type: OrderType,
     pub leverage: u64,
+}
+
+impl Order {
+    pub const LEN: usize = 8 + 8 + 8 + 8 + 8 + 8 + 1 + 1 + 8; // 58 bytes
 }

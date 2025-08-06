@@ -12,3 +12,7 @@ pub struct PerpMarket {
     pub amm: Amm,
 }
 
+impl PerpMarket {
+    pub const LEN: usize = 8 + 
+    8 + 32 + 8 + 8 + 8 + 8 + Amm::LEN;    
+}
