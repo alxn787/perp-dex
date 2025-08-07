@@ -28,6 +28,9 @@ pub struct InitializePerpMarket<'info> {
     )]
     pub perp_market_vault: Account<'info, TokenAccount>,
 
+    #[account(mut,
+        constraint = drift_signer.key() == state.signer.key()
+    )]
     /// CHECK: checked in `initialize`
     pub drift_signer: AccountInfo<'info>,
 
