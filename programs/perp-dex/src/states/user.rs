@@ -4,7 +4,7 @@ use crate::position::PerpPosition;
 #[account]
 pub struct User {
     pub authority: Pubkey,
-    pub orders: [Order; 32],
+    pub orders: [Order; 16],
     pub total_collateral: u64,
     pub perp_positions: [PerpPosition; 8],
 }

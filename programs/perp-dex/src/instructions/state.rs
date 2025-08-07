@@ -22,7 +22,7 @@ pub struct  Initialize<'info> {
     pub token_program: Program<'info, Token>,
 }
 
-pub fn handle_initialize(ctx: Context<Initialize>, perp_fee: u64) -> Result<()> {
+pub fn initialize_state(ctx: Context<Initialize>, perp_fee: u64) -> Result<()> {
 
     let (drift_signer, bump) = Pubkey::find_program_address(&[b"drift_signer".as_ref()], ctx.program_id);
 
@@ -30,7 +30,8 @@ pub fn handle_initialize(ctx: Context<Initialize>, perp_fee: u64) -> Result<()> 
     state.admin = ctx.accounts.admin.key();
     state.no_of_markets = 0;
     state.perp_fee = perp_fee;
-    state.bump = bump;
+    state.signer_bump = bump;
     state.signer = drift_signer;
+    state.bump = ctx.bumps.state;
     Ok(())
 }
