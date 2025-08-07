@@ -10,6 +10,7 @@ pub struct PerpMarket {
     pub margin_ratio_initial: u64,
     pub margin_ratio_maintainance: u64,
     pub amm: Amm,
+    pub bump : u8,
 }
 
 impl PerpMarket {
