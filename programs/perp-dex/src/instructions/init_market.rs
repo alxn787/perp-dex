@@ -1,6 +1,7 @@
 use anchor_lang::prelude::*;
 use anchor_spl::token::{Mint, Token, TokenAccount};
 use crate::states::*;
+use crate::utils::*;
 
 #[derive(Accounts)]
 pub struct InitializePerpMarket<'info> {
@@ -48,3 +49,8 @@ pub struct InitializePerpMarket<'info> {
     pub token_program: Program<'info, Token>,
 }
 
+
+pub fn handle_initialize_perp_market(ctx: Context<InitializePerpMarket>,market_index: u64) -> Result<()> {
+    require!(market_index == ctx.accounts.state.no_of_markets, Perperror::InvalidMarketIndex);
+    Ok(())
+}

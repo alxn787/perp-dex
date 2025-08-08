@@ -4,6 +4,8 @@ pub mod instructions;
 pub use instructions::*;
 pub mod states;
 pub use states::*;
+pub mod utils;
+pub use utils::*;
 
 declare_id!("B2NX28c1xjFMokwTSDDFpoB4XJPXaTJQ53EkeR6xzFsA");
 
