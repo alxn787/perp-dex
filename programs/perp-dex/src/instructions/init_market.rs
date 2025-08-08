@@ -50,16 +50,16 @@ pub struct InitializePerpMarket<'info> {
 }
 
 
-pub fn handle_initialize_perp_market(ctx: Context<InitializePerpMarket>,market_index: u64,base_asset_reserve: u64,quote_asset_reserve: u64) -> Result<()> {
+pub fn handle_initialize_perp_market(ctx: Context<InitializePerpMarket>,market_index: u64,base_asset_reserve: u64,quote_asset_reserve: u64, liquidator_fee: u64, max_leveraege: u64, margin_ratio_initial: u64, margin_ratio_maintainance: u64) -> Result<()> {
     require!(market_index == ctx.accounts.state.no_of_markets, Perperror::InvalidMarketIndex);
     let clock = Clock::get().unwrap();
     let market = &mut ctx.accounts.market;
     market.market_index = market_index;
     market.authority = ctx.accounts.admin.key();
-    market.liquidator_fee = 0;
-    market.max_leverage = 10;
-    market.margin_ratio_initial = 10;
-    market.margin_ratio_maintainance = 10;
+    market.liquidator_fee = liquidator_fee;
+    market.max_leverage = max_leveraege;
+    market.margin_ratio_initial = margin_ratio_initial;
+    market.margin_ratio_maintainance = margin_ratio_maintainance;
 
     market.amm = Amm {
         oracle: ctx.accounts.oracle.key(),
