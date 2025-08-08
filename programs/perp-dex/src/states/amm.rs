@@ -12,5 +12,4 @@ pub struct Amm {
 
 impl Amm {
     pub const LEN: usize = 8 + 32 + 8 + 8 + 8 + 8 + 8;
-    
 }
