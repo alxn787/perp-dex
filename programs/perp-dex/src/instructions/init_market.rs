@@ -71,5 +71,6 @@ pub fn handle_initialize_perp_market(ctx: Context<InitializePerpMarket>,market_i
     };
 
     market.bump = ctx.bumps.market;
+    ctx.accounts.state.no_of_markets += 1;
     Ok(())
 }
