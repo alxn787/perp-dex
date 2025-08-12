@@ -2,6 +2,7 @@ use anchor_lang::prelude::*;
 use anchor_spl::token::{Mint, Token, TokenAccount};
 use crate::states::*;
 use crate::utils::*;
+use crate::utils::constant::*;
 
 #[derive(Accounts)]
 pub struct InitializePerpMarket<'info> {
@@ -63,6 +64,10 @@ pub struct InitializeMarketParams {
 
 pub fn handle_initialize_perp_market(ctx: Context<InitializePerpMarket>,params:InitializeMarketParams) -> Result<()> {
     require!(params.market_index == ctx.accounts.state.no_of_markets, Perperror::InvalidMarketIndex);
+    require!(params.max_leverage <= MAX_LEVERAGE, Perperror::InvalidLeverage);
+    require!(params.base_asset_reserve > 0, Perperror::InvalidAmount);
+    require!(params.quote_asset_reserve > 0, Perperror::InvalidAmount);
+    
     let clock = Clock::get().unwrap();
     let market = &mut ctx.accounts.market;
     market.market_index = params.market_index;

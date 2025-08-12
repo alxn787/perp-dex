@@ -1,4 +1,5 @@
 use anchor_lang::prelude::*;
+use crate::utils::constant::*;
 
 #[derive(Clone, Copy, AnchorSerialize, AnchorDeserialize, PartialEq, Debug, Eq, Default)]
 pub enum OrderType {
@@ -38,7 +39,7 @@ pub struct Order {
 
 impl Order {
     pub const SIZE: usize = 8 + // discriminator
-                           8 + // market_index
+                           2 + // market_index (u16)
                            8 + // order_index  
                            8 + // base_asset_amount
                            8 + // base_asset_amount_filled
@@ -47,12 +48,18 @@ impl Order {
                            1 + // direction
                            1 + // order_type
                            8 + // leverage
-                           1;  // status
-                           // Total: 67 bytes
-}
+                           1 + // status
+                           8;  // order_id
+                           // Total: 69 bytes
 
-impl Order {
     pub fn is_available(&self) -> bool {
         self.status != OrderStatus::Open
+    }
+
+    pub fn validate(&self) -> Result<()> {
+        require!(self.base_asset_amount >= MIN_ORDER_AMOUNT, crate::utils::error::Perperror::InvalidAmount);
+        require!(self.leverage >= MIN_LEVERAGE && self.leverage <= MAX_LEVERAGE, crate::utils::error::Perperror::InvalidLeverage);
+        require!(self.price > 0, crate::utils::error::Perperror::InvalidPrice);
+        Ok(())
     }
 }

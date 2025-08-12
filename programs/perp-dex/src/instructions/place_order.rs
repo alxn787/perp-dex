@@ -1,8 +1,8 @@
 use anchor_lang::prelude::*;
 use crate::states::perp_market_map::PerpMarketMap;
-use crate::states::position::{add_new_position, get_position_index};
-use crate::update_bids_and_asks;
+use crate::states::position::{add_new_position, get_position_index, update_bids_and_asks};
 use crate::utils::error::Perperror;
+use crate::utils::constant::*;
 use crate::states::order::{Order, OrderType, PositionDirection, OrderStatus};
 use crate::states::state::State;
 use crate::states::user::User;
@@ -17,6 +17,7 @@ pub struct PlaceOrder<'info> {
     pub authority: Signer<'info>,
 }
 
+#[derive(AnchorSerialize, AnchorDeserialize)]
 pub struct OrderParams {
     pub order_type: OrderType,
     pub direction: PositionDirection,
@@ -47,6 +48,12 @@ pub fn place_order(
     _state: &State, 
     user: &mut User) -> Result<()> {
 
+    // Validate input parameters
+    require!(params.base_asset_amount >= MIN_ORDER_AMOUNT, Perperror::InvalidAmount);
+    require!(params.leverage >= MIN_LEVERAGE && params.leverage <= MAX_LEVERAGE, Perperror::InvalidLeverage);
+    require!(params.price > 0, Perperror::InvalidPrice);
+    require!(params.market_index <= MAX_MARKET_INDEX, Perperror::InvalidMarketIndex);
+
     let _market = perp_market_map.get_ref(params.market_index).ok_or(Perperror::InvalidMarketIndex)?;
 
     
@@ -74,7 +81,6 @@ pub fn place_order(
         order_id: user_order_id,
         status: OrderStatus::Open,
     };
-
 
     user.orders[new_order_index] = order;
     user.perp_positions[position_index].open_orders += 1;

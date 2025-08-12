@@ -28,4 +28,8 @@ pub enum Perperror {
     UserHasNoPositionInMarket,
     #[msg("User Has No Order In Market")]
     UserHasNoOrderInMarket,
+    #[msg("Invalid Leverage")]
+    InvalidLeverage,
+    #[msg("Invalid Price")]
+    InvalidPrice,
 }

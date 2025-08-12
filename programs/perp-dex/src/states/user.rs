@@ -1,25 +1,33 @@
 use anchor_lang::prelude::*;
 use super::Order;
 use super::PerpPosition;
+use crate::utils::constant::*;
+
 #[account]
 pub struct User {
     pub authority: Pubkey,
-    pub orders: [Order; 16],
+    pub orders: [Order; MAX_ORDERS_PER_USER],
     pub total_collateral: u64,
-    pub perp_positions: [PerpPosition; 8],
+    pub perp_positions: [PerpPosition; MAX_POSITIONS_PER_USER],
     pub next_order_id: u64,
     pub open_orders: u64,
-    pub account_id: u16,
 }
 
 impl User {
     pub const SIZE: usize = 8 + // discriminator
-                           32 + // authority (Pubkey)
-                           16 * Order::SIZE + // orders [Order; 16]
-                           8 + // total_collateral (u64)
-                           8 * PerpPosition::SIZE + // perp_positions [PerpPosition; 8]
-                           8 + // next_order_id (u64)
-                           8 + // open_orders (u64)
-                           2;  // account_id (u16)
-                           // Total: 58 + 16*Order::SIZE + 8*PerpPosition::SIZE bytes
+                           32 + // authority
+                           (Order::SIZE * MAX_ORDERS_PER_USER) + // orders array
+                           8 + // total_collateral
+                           (PerpPosition::SIZE * MAX_POSITIONS_PER_USER) + // perp_positions array
+                           8 + // next_order_id
+                           8; // open_orders
+                           // Total: variable based on array sizes
+
+    pub fn can_add_order(&self) -> bool {
+        self.open_orders < MAX_ORDERS_PER_USER as u64
+    }
+
+    pub fn can_add_position(&self) -> bool {
+        self.perp_positions.iter().any(|pos| pos.is_available())
+    }
 }
