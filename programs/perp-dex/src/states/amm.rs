@@ -11,5 +11,12 @@ pub struct Amm {
 }
 
 impl Amm {
-    pub const LEN: usize = 8 + 32 + 8 + 8 + 8 + 8 + 8;
+    pub const SIZE: usize = 8 + // discriminator
+                           32 + // oracle (Pubkey)
+                           8 + // base_asset_reserve (u64)
+                           8 + // quote_asset_reserve (u64)
+                           8 + // last_funding_rate (u64)
+                           8 + // last_funding_rate_ts (i64)
+                           8;  // amm_price (u64)
+                           // Total: 80 bytes
 }

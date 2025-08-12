@@ -1,6 +1,6 @@
 use anchor_lang::prelude::*;
 use crate::states::*;
-use crate::error::Perperror;
+use crate::utils::error::Perperror;
 
 #[derive(Accounts)]
 pub struct PlaceOrder<'info> {
@@ -18,38 +18,34 @@ pub struct OrderParams {
     pub user_order_id: u8,
     pub base_asset_amount: u64,
     pub price: u64,
-    pub market_index: u16,
+    pub market_index: u64, 
 }
-
 
 pub fn handle_place_order(ctx: Context<PlaceOrder>, params: OrderParams) -> Result<()> {
 
-    require!(ctx.remaining_accounts.len() > 0, Perperror::InsufficientAccounts);
     let perp_market_map = &ctx.remaining_accounts[0];
 
     let perp_market_map: PerpMarketMap = PerpMarketMap::try_from_slice(&perp_market_map.data.borrow())?;
 
-    let state = &ctx.accounts.state;
+    let state = &ctx.accounts.state.clone();
     let mut user = &mut ctx.accounts.user;
 
-    place_order(ctx, params, &perp_market_map, &state, &mut user)?;
+    place_order(params, &perp_market_map, &state, &mut user)?;
 
     Ok(())
 }
 
 pub fn place_order(
-    ctx: Context<PlaceOrder>,
     params: OrderParams,
     perp_market_map: &PerpMarketMap,
     state: &State, 
     user: &mut User) -> Result<()> {
 
-    let market = perp_market_map.get_ref(params.market_index).ok_or(Perperror::InvalidMarketIndex)?;
+    let market = perp_market_map.get_ref(params.market_index as u16).ok_or(Perperror::InvalidMarketIndex)?;
 
     let user_order_id = user.next_order_id;
 
     let order = Order{
-        status: OrderStatus::Open,
         market_index: params.market_index,
         order_index: user_order_id,
         base_asset_amount: params.base_asset_amount,
@@ -59,8 +55,13 @@ pub fn place_order(
         direction: params.direction,
         order_type: params.order_type,
         leverage: 1,
+        status: OrderStatus::Open,
     };
-
+    
+    // Add the order to user's orders array
+    user.orders[user_order_id as usize % 16] = order;
+    user.next_order_id += 1;
+    user.open_orders += 1;
 
     Ok(())
 }

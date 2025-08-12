@@ -3,7 +3,7 @@ use anchor_spl::{token::{Mint, Token}};
 use crate::states::*;
 
 #[derive(Accounts)]
-pub struct  Initialize<'info> {
+pub struct  InitializeState<'info> {
     #[account(mut)]
     pub admin: Signer<'info>,
     #[account(
@@ -22,7 +22,7 @@ pub struct  Initialize<'info> {
     pub token_program: Program<'info, Token>,
 }
 
-pub fn initialize_state(ctx: Context<Initialize>, perp_fee: u64) -> Result<()> {
+pub fn initialize_state(ctx: Context<InitializeState>, perp_fee: u64) -> Result<()> {
 
     let (drift_signer, bump) = Pubkey::find_program_address(&[b"drift_signer".as_ref()], ctx.program_id);
 

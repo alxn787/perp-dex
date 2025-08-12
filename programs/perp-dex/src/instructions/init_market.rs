@@ -8,14 +8,15 @@ pub struct InitializePerpMarket<'info> {
     
     #[account(init,
         payer = admin,
-        space = PerpMarket::LEN,
+        space = PerpMarket::SIZE,
         seeds = [
             b"perp_market".as_ref(),state.no_of_markets.to_le_bytes().as_ref() 
               
         ],
         bump
     )]
-    pub market: Account<'info, PerpMarket>,
+    pub market: Box<Account<'info, PerpMarket>>,
+
     pub perp_market_mint: Account<'info, Mint>,
 
     #[account(init,
@@ -50,14 +51,14 @@ pub struct InitializePerpMarket<'info> {
 }
 
 
-pub fn handle_initialize_perp_market(ctx: Context<InitializePerpMarket>,market_index: u64,base_asset_reserve: u64,quote_asset_reserve: u64, liquidator_fee: u64, max_leveraege: u64, margin_ratio_initial: u64, margin_ratio_maintainance: u64) -> Result<()> {
+pub fn handle_initialize_perp_market(ctx: Context<InitializePerpMarket>,market_index: u64,base_asset_reserve: u64,quote_asset_reserve: u64, liquidator_fee: u64, max_leverage: u64, margin_ratio_initial: u64, margin_ratio_maintainance: u64) -> Result<()> {
     require!(market_index == ctx.accounts.state.no_of_markets, Perperror::InvalidMarketIndex);
     let clock = Clock::get().unwrap();
     let market = &mut ctx.accounts.market;
     market.market_index = market_index;
     market.authority = ctx.accounts.admin.key();
     market.liquidator_fee = liquidator_fee;
-    market.max_leverage = max_leveraege;
+    market.max_leverage = max_leverage;
     market.margin_ratio_initial = margin_ratio_initial;
     market.margin_ratio_maintainance = margin_ratio_maintainance;
 

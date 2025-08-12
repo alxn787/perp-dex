@@ -10,3 +10,5 @@ pub mod state;
 pub use state::*;
 pub mod position;
 pub use position::*;
+pub mod perp_market_map;
+pub use perp_market_map::*;
