@@ -1,6 +1,7 @@
 use anchor_lang::prelude::*;
 use crate::states::perp_market_map::PerpMarketMap;
 use crate::states::position::{add_new_position, get_position_index};
+use crate::update_bids_and_asks;
 use crate::utils::error::Perperror;
 use crate::states::order::{Order, OrderType, PositionDirection, OrderStatus};
 use crate::states::state::State;
@@ -43,10 +44,10 @@ pub fn handle_place_order(ctx: Context<PlaceOrder>, params: OrderParams) -> Resu
 pub fn place_order(
     params: OrderParams,
     perp_market_map: &PerpMarketMap,
-    state: &State, 
+    _state: &State, 
     user: &mut User) -> Result<()> {
 
-    let market = perp_market_map.get_ref(params.market_index).ok_or(Perperror::InvalidMarketIndex)?;
+    let _market = perp_market_map.get_ref(params.market_index).ok_or(Perperror::InvalidMarketIndex)?;
 
     
     let new_order_index = user
@@ -70,13 +71,16 @@ pub fn place_order(
         direction: params.direction,
         order_type: params.order_type,
         leverage: params.leverage,
+        order_id: user_order_id,
         status: OrderStatus::Open,
     };
 
 
     user.orders[new_order_index] = order;
+    user.perp_positions[position_index].open_orders += 1;
     user.next_order_id += 1;
     user.open_orders += 1;
+    update_bids_and_asks(&mut user.perp_positions[position_index], params.direction, params.base_asset_amount)?;
 
     Ok(())
 }

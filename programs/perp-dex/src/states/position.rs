@@ -1,14 +1,16 @@
 use anchor_lang::prelude::*;
-use crate::utils::error::Perperror;
+use crate::{utils::error::Perperror, PositionDirection};
 
 #[account]
 pub struct PerpPosition {
     pub last_cumulative_funding_rate: i64,
     pub market_index: u64,
-    pub base_asset_amount: u64,
-    pub quote_asset_amount: u64,
+    pub base_asset_amount: i64,
+    pub quote_asset_amount: i64,
     pub open_orders: u8,
     pub pnl: i64,
+    pub bids: u64,
+    pub asks: u64,
 }
 
 impl PerpPosition {
@@ -18,8 +20,10 @@ impl PerpPosition {
                            8 + // base_asset_amount (u64)
                            8 + // quote_asset_amount (u64)
                            1 + // open_orders (u8)
-                           8;  // pnl (i64)
-                           // Total: 57 bytes
+                           8 + // pnl (i64)
+                           8 + // bids (i64)
+                           8;  // asks (i64)
+                           // Total: 65 bytes
 
     pub fn default() -> Self {
         Self {
@@ -29,6 +33,8 @@ impl PerpPosition {
             quote_asset_amount: 0,
             open_orders: 0,
             pnl: 0,
+            bids: 0,
+            asks: 0,    
         }
     }
 
@@ -67,4 +73,16 @@ pub fn get_position_index(user_positions: &PerpPositions, market_index: u16) -> 
         Some(position_index) => Ok(position_index),
         None => Err(Perperror::UserHasNoPositionInMarket.into()),
     }
+}
+
+pub fn update_bids_and_asks(user_positions: &mut PerpPosition, direction: PositionDirection, base_asset_amount: u64) -> Result<()> {
+    match direction {
+        PositionDirection::Long => {
+            user_positions.bids += base_asset_amount;
+        }
+        PositionDirection::Short => {
+            user_positions.asks += base_asset_amount;
+        }
+    }
+    Ok(())
 }

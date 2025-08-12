@@ -33,6 +33,7 @@ pub struct Order {
     pub order_type: OrderType,
     pub leverage: u64,
     pub status: OrderStatus,
+    pub order_id: u64,
 }
 
 impl Order {
