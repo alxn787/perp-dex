@@ -23,7 +23,7 @@ pub enum PositionDirection {
 
 #[account]
 pub struct Order {
-    pub market_index: u64,
+    pub market_index: u16,
     pub order_index: u64,
     pub base_asset_amount: u64,
     pub base_asset_amount_filled: u64,
@@ -48,4 +48,10 @@ impl Order {
                            8 + // leverage
                            1;  // status
                            // Total: 67 bytes
+}
+
+impl Order {
+    pub fn is_available(&self) -> bool {
+        self.status != OrderStatus::Open
+    }
 }

@@ -18,10 +18,14 @@ pub enum Perperror {
     InvalidAmm,
     #[msg("Invalid Liquidator")]
     InvalidLiquidator,
-    #[msg("Max Number of Orders")]
-    MaxNumberOfOrders,
-    #[msg("Max Number of Positions")]
+    #[msg("Insufficient Accounts")]
+    InsufficientAccounts,
+    #[msg("Max Number Of Positions")]
     MaxNumberOfPositions,
-    #[msg("Position Not Found")]
-    PositionNotFound,
+    #[msg("Max Number Of Orders")]
+    MaxNumberOfOrders,
+    #[msg("User Has No Position In Market")]
+    UserHasNoPositionInMarket,
+    #[msg("User Has No Order In Market")]
+    UserHasNoOrderInMarket,
 }

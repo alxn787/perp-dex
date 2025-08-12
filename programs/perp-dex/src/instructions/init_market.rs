@@ -50,25 +50,35 @@ pub struct InitializePerpMarket<'info> {
     pub token_program: Program<'info, Token>,
 }
 
+#[derive(Clone, Copy, AnchorSerialize, AnchorDeserialize, PartialEq, Debug, Eq, Default)]
+pub struct InitializeMarketParams {
+    pub market_index: u64,
+    pub base_asset_reserve: u64,
+    pub quote_asset_reserve: u64,
+    pub liquidator_fee: u64,
+    pub max_leverage: u64,
+    pub margin_ratio_initial: u64,
+    pub margin_ratio_maintainance: u64,
+}
 
-pub fn handle_initialize_perp_market(ctx: Context<InitializePerpMarket>,market_index: u64,base_asset_reserve: u64,quote_asset_reserve: u64, liquidator_fee: u64, max_leverage: u64, margin_ratio_initial: u64, margin_ratio_maintainance: u64) -> Result<()> {
-    require!(market_index == ctx.accounts.state.no_of_markets, Perperror::InvalidMarketIndex);
+pub fn handle_initialize_perp_market(ctx: Context<InitializePerpMarket>,params:InitializeMarketParams) -> Result<()> {
+    require!(params.market_index == ctx.accounts.state.no_of_markets, Perperror::InvalidMarketIndex);
     let clock = Clock::get().unwrap();
     let market = &mut ctx.accounts.market;
-    market.market_index = market_index;
+    market.market_index = params.market_index;
     market.authority = ctx.accounts.admin.key();
-    market.liquidator_fee = liquidator_fee;
-    market.max_leverage = max_leverage;
-    market.margin_ratio_initial = margin_ratio_initial;
-    market.margin_ratio_maintainance = margin_ratio_maintainance;
+    market.liquidator_fee = params.liquidator_fee;
+    market.max_leverage = params.max_leverage;
+    market.margin_ratio_initial = params.margin_ratio_initial;
+    market.margin_ratio_maintainance = params.margin_ratio_maintainance;
 
     market.amm = Amm {
         oracle: ctx.accounts.oracle.key(),
-        base_asset_reserve: base_asset_reserve,
-        quote_asset_reserve: quote_asset_reserve,
+        base_asset_reserve: params.base_asset_reserve,
+        quote_asset_reserve: params.quote_asset_reserve,
         last_funding_rate: 0,
         last_funding_rate_ts: clock.unix_timestamp,
-        amm_price: quote_asset_reserve / base_asset_reserve,
+        amm_price: params.quote_asset_reserve / params.base_asset_reserve,
     };
 
     market.bump = ctx.bumps.market;
