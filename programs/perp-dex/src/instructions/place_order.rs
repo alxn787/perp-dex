@@ -19,6 +19,7 @@ pub struct OrderParams {
     pub base_asset_amount: u64,
     pub price: u64,
     pub market_index: u64, 
+    pub leverage: u64,
 }
 
 pub fn handle_place_order(ctx: Context<PlaceOrder>, params: OrderParams) -> Result<()> {
@@ -41,25 +42,36 @@ pub fn place_order(
     state: &State, 
     user: &mut User) -> Result<()> {
 
-    let market = perp_market_map.get_ref(params.market_index as u16).ok_or(Perperror::InvalidMarketIndex)?;
+    let market = perp_market_map.get_ref(params.market_index).ok_or(Perperror::InvalidMarketIndex)?;
+
+    
+    let new_order_index = user
+    .orders
+    .iter()
+    .position(|order| order.is_available())
+    .ok_or(Perperror::MaxNumberOfOrders)?;
 
     let user_order_id = user.next_order_id;
 
+    let position_index = get_position_index(&user.perp_positions, params.market_index)
+        .or_else(|_| add_new_position(&user.perp_positions, params.market_index))?;
+   
     let order = Order{
         market_index: params.market_index,
-        order_index: user_order_id,
+        order_index: new_order_index,
         base_asset_amount: params.base_asset_amount,
         base_asset_amount_filled: 0,
         quote_asset_amount_filled: 0,
         price: params.price,
         direction: params.direction,
         order_type: params.order_type,
-        leverage: 1,
+        order_id: user_order_id,
+        leverage: params.leverage,
         status: OrderStatus::Open,
     };
-    
-    // Add the order to user's orders array
-    user.orders[user_order_id as usize % 16] = order;
+
+
+    user.orders[new_order_index] = order;
     user.next_order_id += 1;
     user.open_orders += 1;
 
