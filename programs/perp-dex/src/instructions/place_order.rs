@@ -1,4 +1,5 @@
 use anchor_lang::prelude::*;
+use crate::utils::constraint::can_sign_for_user;
 use crate::states::perp_market_map::PerpMarketMap;
 use crate::states::position::{add_new_position, get_position_index, update_bids_and_asks};
 use crate::utils::error::Perperror;
@@ -12,6 +13,7 @@ pub struct PlaceOrder<'info> {
     pub state: Account<'info, State>,
     #[account(
         mut,
+        constraint = can_sign_for_user(&user, &authority)?
     )]
     pub user: Account<'info, User>,
     pub authority: Signer<'info>,
