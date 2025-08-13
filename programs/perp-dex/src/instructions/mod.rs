@@ -4,3 +4,5 @@ pub mod init_state;
 pub use init_state::*;
 pub mod place_order;
 pub use place_order::*;
+pub mod fill_order;
+pub use fill_order::*;
