@@ -1,7 +1,10 @@
+use std::u64;
+
 use anchor_lang::prelude::*;
 use super::Order;
 use super::PerpPosition;
 use crate::utils::constant::*;
+use crate::OrderStatus;
 
 #[account]
 pub struct User {
@@ -29,5 +32,17 @@ impl User {
 
     pub fn can_add_position(&self) -> bool {
         self.perp_positions.iter().any(|pos| pos.is_available())
+    }
+
+    pub fn get_last_order_id(&self) -> u64{
+        if(self.next_order_id == 1){
+            u64::MAX
+        }else {
+            self.next_order_id - 1
+        }
+    }
+
+    pub fn get_order(&self, order_id: u64) -> Option<&Order>{
+        self.orders.iter().find(|order| order.order_id == order_id && order.status == OrderStatus::Open)
     }
 }

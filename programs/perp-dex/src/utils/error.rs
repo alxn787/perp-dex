@@ -32,4 +32,6 @@ pub enum Perperror {
     InvalidLeverage,
     #[msg("Invalid Price")]
     InvalidPrice,
+    #[msg("Order Not Found")]
+    OrderNotFound,
 }
