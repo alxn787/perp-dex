@@ -3,7 +3,8 @@ use crate::utils::constraint::can_sign_for_user;
 use crate::states::state::State;
 use crate::states::user::User;
 use crate::utils::error::Perperror;
-use crate::PerpMarketMap;
+use crate::states::user_map::UserMap;
+use crate::states::perp_market_map::PerpMarketMap;
 
 #[derive(Accounts)]
 pub struct FillOrder<'info> {
@@ -44,6 +45,9 @@ pub fn fill_order(ctx: Context<FillOrder>, order_id: u64, market_index: u16)->Re
     let perp_market_map = &ctx.remaining_accounts[0];
 
     let perp_market_map: PerpMarketMap = PerpMarketMap::try_from_slice(&perp_market_map.data.borrow())?;
+
+    let user_map = &ctx.remaining_accounts[1];
+    let user_map: UserMap = UserMap::try_from_slice(&user_map.data.borrow())?;
 
     Ok(())
 }
