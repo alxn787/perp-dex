@@ -21,6 +21,12 @@ impl UserMap {
     pub fn remove(&mut self, user_key: &Pubkey) {
         self.0.remove(user_key);
     }
+
+    pub fn try_from_slice(data: &[u8]) -> Result<Self> {
+        let mut cursor = std::io::Cursor::new(data);
+        Self::deserialize_reader(&mut cursor)
+            .map_err(|e| error!(crate::utils::error::Perperror::InvalidUserMap))
+    }
 }
 
 impl AnchorSerialize for UserMap {

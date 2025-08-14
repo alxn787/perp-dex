@@ -7,6 +7,7 @@ use crate::utils::constant::*;
 use crate::states::order::{Order, OrderType, PositionDirection, OrderStatus};
 use crate::states::state::State;
 use crate::states::user::User;
+use crate::utils::constraint::OrderParams;
 
 #[derive(Accounts)]
 pub struct PlaceOrder<'info> {
@@ -19,16 +20,6 @@ pub struct PlaceOrder<'info> {
     pub authority: Signer<'info>,
 }
 
-#[derive(AnchorSerialize, AnchorDeserialize)]
-pub struct OrderParams {
-    pub order_type: OrderType,
-    pub direction: PositionDirection,
-    pub user_order_id: u8,
-    pub base_asset_amount: u64,
-    pub price: u64,
-    pub market_index: u16, 
-    pub leverage: u64,
-}
 
 pub fn handle_place_order(ctx: Context<PlaceOrder>, params: OrderParams) -> Result<()> {
 

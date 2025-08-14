@@ -34,4 +34,6 @@ pub enum Perperror {
     InvalidPrice,
     #[msg("Order Not Found")]
     OrderNotFound,
+    #[msg("Invalid User Map")]
+    InvalidUserMap,
 }

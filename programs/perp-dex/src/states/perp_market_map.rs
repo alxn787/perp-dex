@@ -1,6 +1,8 @@
-use std::collections::BTreeMap;
+use std::{collections::BTreeMap};
 
 use anchor_lang::prelude::*;
+
+
 use super::PerpMarket;
 
 pub struct PerpMarketMap (pub BTreeMap<u16, PerpMarket>);
@@ -21,6 +23,13 @@ impl PerpMarketMap {
     pub fn remove(&mut self, market_index: u16) {
         self.0.remove(&market_index);
     }
+
+    pub fn try_from_slice(data: &[u8]) -> Result<Self> {
+        let mut cursor = std::io::Cursor::new(data);
+        Self::deserialize_reader(&mut cursor)
+            .map_err(|e| error!(crate::utils::error::Perperror::InvalidMarketIndex))
+    }
+
 }
 
 impl AnchorSerialize for PerpMarketMap {
@@ -40,7 +49,6 @@ impl AnchorSerialize for PerpMarketMap {
 
 impl AnchorDeserialize for PerpMarketMap {
     fn deserialize(buf: &mut &[u8]) -> std::io::Result<Self> {
-        // Deserialize the BTreeMap
         let len = u32::deserialize(buf)?;
         let mut map = BTreeMap::new();
         
@@ -54,7 +62,6 @@ impl AnchorDeserialize for PerpMarketMap {
     }
 
     fn deserialize_reader<R: std::io::Read>(reader: &mut R) -> std::io::Result<Self> {
-        // Deserialize the BTreeMap from reader
         let len = u32::deserialize_reader(reader)?;
         let mut map = BTreeMap::new();
         

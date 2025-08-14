@@ -4,9 +4,10 @@ pub use instructions::*;
 pub mod states;
 pub use states::*;
 pub mod utils;
-pub use utils::*;
+pub use utils::constraint::{OrderParams, InitializeMarketParams};
 
-declare_id!("B2NX28c1xjFMokwTSDDFpoB4XJPXaTJQ53EkeR6xzFsA");
+
+declare_id!("B2NX28c1xzFMokwTSDDFpoB4XJPXaTJQ53EkeR6xzFsA");
 
 #[program]
 pub mod perp_dex {
@@ -22,7 +23,8 @@ pub mod perp_dex {
         handle_place_order(ctx, params)
     }
 
-    pub fn fill_perp_order(ctx: Context<FillOrder>, order_id: Option<u64>) -> Result<()> {
+    pub fn fill_order(ctx: Context<FillOrder>, order_id: Option<u64>) -> Result<()> {
         handle_fill_order(ctx, order_id)
     }
-}   
+}
+

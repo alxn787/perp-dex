@@ -5,6 +5,7 @@ use crate::states::user::User;
 use crate::utils::error::Perperror;
 use crate::states::user_map::UserMap;
 use crate::states::perp_market_map::PerpMarketMap;
+use crate::OrderStatus;
 
 #[derive(Accounts)]
 pub struct FillOrder<'info> {
@@ -49,5 +50,43 @@ pub fn fill_order(ctx: Context<FillOrder>, order_id: u64, market_index: u16)->Re
     let user_map = &ctx.remaining_accounts[1];
     let user_map: UserMap = UserMap::try_from_slice(&user_map.data.borrow())?;
 
+    fill_perp_order_controller(
+        &ctx.accounts.state,
+        &mut ctx.accounts.user,
+        &mut ctx.accounts.filler,
+        &perp_market_map,
+        &user_map,
+        order_id,
+        market_index,
+    )?;
+
+    Ok(())
+}
+
+pub fn fill_perp_order_controller(
+    state: &Account<State>,
+    user: &mut Account<User>,
+    filler: &mut Account<User>,
+    perp_market_map: &PerpMarketMap,
+    user_map: &UserMap,
+    order_id: u64,
+    market_index: u16,
+)->Result<()>{
+
+    let order_index = user
+    .orders
+    .iter()
+    .position(|order| order.order_id == order_id && order.status == OrderStatus::Open)
+    .ok_or(Perperror::OrderNotFound)?;
+
+    let position_index = user
+    .perp_positions // Fix: should be perp_positions, not positions
+    .iter()
+    .position(|position| position.market_index == market_index as u64) // Fix: cast to u64
+    .ok_or(Perperror::UserHasNoPositionInMarket)?; // Fix: use correct error
+
+    // Get immutable reference first
+    let perp_market = perp_market_map.get_ref(market_index).ok_or(Perperror::InvalidMarketIndex)?;
+    
     Ok(())
 }

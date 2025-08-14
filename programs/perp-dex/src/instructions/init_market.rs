@@ -51,16 +51,6 @@ pub struct InitializePerpMarket<'info> {
     pub token_program: Program<'info, Token>,
 }
 
-#[derive(Clone, Copy, AnchorSerialize, AnchorDeserialize, PartialEq, Debug, Eq, Default)]
-pub struct InitializeMarketParams {
-    pub market_index: u64,
-    pub base_asset_reserve: u64,
-    pub quote_asset_reserve: u64,
-    pub liquidator_fee: u64,
-    pub max_leverage: u64,
-    pub margin_ratio_initial: u64,
-    pub margin_ratio_maintainance: u64,
-}
 
 pub fn handle_initialize_perp_market(ctx: Context<InitializePerpMarket>,params:InitializeMarketParams) -> Result<()> {
     require!(params.market_index == ctx.accounts.state.no_of_markets, Perperror::InvalidMarketIndex);
@@ -76,7 +66,7 @@ pub fn handle_initialize_perp_market(ctx: Context<InitializePerpMarket>,params:I
     market.max_leverage = params.max_leverage;
     market.margin_ratio_initial = params.margin_ratio_initial;
     market.margin_ratio_maintainance = params.margin_ratio_maintainance;
-
+    
     market.amm = Amm {
         oracle: ctx.accounts.oracle.key(),
         base_asset_reserve: params.base_asset_reserve,
@@ -85,8 +75,9 @@ pub fn handle_initialize_perp_market(ctx: Context<InitializePerpMarket>,params:I
         last_funding_rate_ts: clock.unix_timestamp,
         amm_price: params.quote_asset_reserve / params.base_asset_reserve,
     };
-
+    
     market.bump = ctx.bumps.market;
     ctx.accounts.state.no_of_markets += 1;
     Ok(())
 }
+
