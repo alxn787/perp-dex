@@ -21,4 +21,8 @@ pub mod perp_dex {
     pub fn place_order(ctx: Context<PlaceOrder>, params: OrderParams) -> Result<()> {
         handle_place_order(ctx, params)
     }
-}
+
+    pub fn fill_perp_order(ctx: Context<FillOrder>, order_id: Option<u64>) -> Result<()> {
+        handle_fill_order(ctx, order_id)
+    }
+}   

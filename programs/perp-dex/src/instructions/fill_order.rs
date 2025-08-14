@@ -2,7 +2,8 @@ use anchor_lang::prelude::*;
 use crate::utils::constraint::can_sign_for_user;
 use crate::states::state::State;
 use crate::states::user::User;
-use crate::Perperror;
+use crate::utils::error::Perperror;
+use crate::PerpMarketMap;
 
 #[derive(Accounts)]
 pub struct FillOrder<'info> {
@@ -25,12 +26,24 @@ pub fn handle_fill_order(ctx: Context<FillOrder>, order_id: Option<u64>) -> Resu
     let(order_id , market_index) = {
         let user = &ctx.accounts.user;
         let order_id = order_id.unwrap_or_else(|| user.get_last_order_id());
+
         let market_index = match user.get_order(order_id){
             Some(order)=> order.market_index,
             None => return Err(Perperror::OrderNotFound.into()),
         };
         (order_id, market_index)
     };
+
+    fill_order(ctx, order_id, market_index)?;
+
+    Ok(())
+}
+
+pub fn fill_order(ctx: Context<FillOrder>, order_id: u64, market_index: u16)->Result<()>{
+
+    let perp_market_map = &ctx.remaining_accounts[0];
+
+    let perp_market_map: PerpMarketMap = PerpMarketMap::try_from_slice(&perp_market_map.data.borrow())?;
 
     Ok(())
 }
