@@ -64,9 +64,9 @@ pub fn fill_order(ctx: Context<FillOrder>, order_id: u64, market_index: u16)->Re
 }
 
 pub fn fill_perp_order_controller(
-    state: &State,
+    _state: &State,
     user: &User,
-    filler: &mut Account<User>,
+    _filler: &mut Account<User>,
     perp_market_map: &mut PerpMarketMap,
     maker_map: &UserMap,
     order_id: u64,
@@ -87,8 +87,6 @@ pub fn fill_perp_order_controller(
     .position(|position| position.market_index == market_index as u64) // Fix: cast to u64
     .ok_or(Perperror::UserHasNoPositionInMarket)?; // Fix: use correct error
 
-    // Get immutable reference first
-    let perp_market = perp_market_map.get_ref(market_index).ok_or(Perperror::InvalidMarketIndex)?;
 
     let maker_id_index_price = get_maker_id_index_price(
         perp_market_map,
@@ -96,6 +94,8 @@ pub fn fill_perp_order_controller(
         &user_key,
         &user.orders[order_index],
     )?;
+
+    let(base_asset_amount, quote_asset_amount) = execute_perp_order()?;
     
     Ok(())
 }
@@ -118,7 +118,7 @@ pub fn  get_maker_id_index_price(
 
         let _maker = maker;
 
-        let mut market = perp_market_map.get_mut(taker_order.market_index).ok_or(Perperror::InvalidMarketIndex)?;
+        let mut _market = perp_market_map.get_mut(taker_order.market_index).ok_or(Perperror::InvalidMarketIndex)?;
 
         let idx_price_for_maker = get_idx_price_for_maker(
             &maker,
@@ -126,6 +126,30 @@ pub fn  get_maker_id_index_price(
             taker_order.market_index,
         )?;
 
+        if idx_price_for_maker.is_empty() {
+            continue;
+        }
+
+        for (idx, price) in idx_price_for_maker {
+
+            let maker_order_price = price;
+            let maker_order_idx = idx;
+
+            let _maker_order = &maker.orders[maker_order_idx];
+
+            let taker_order_price = taker_order.price;
+
+            if maker_order_price > taker_order_price {
+                continue;
+            }
+
+            add_to_maker_order_info(
+                &mut maker_idx_price,
+                (*maker_key, maker_order_idx, maker_order_price),
+                maker_direction,
+            );
+        }
+        
         
     }
 
@@ -147,7 +171,31 @@ fn get_idx_price_for_maker(
 
         idx_price.push((order_index, order.price));
     }
-
-
     Ok(idx_price)
+}
+
+fn add_to_maker_order_info(
+    maker_idx_price: &mut Vec<(Pubkey, usize, u64)>,
+    current_maker_order_info: (Pubkey, usize, u64),
+    direction: PositionDirection,
+) {
+    let price = current_maker_order_info.2;
+    let index = match maker_idx_price.binary_search_by(|item| match direction {
+        PositionDirection::Short => item.2.cmp(&price),
+        PositionDirection::Long => price.cmp(&item.2),
+    }) {
+        Ok(index) => index,
+        Err(index) => index,
+    };
+
+    if index < maker_idx_price.capacity() {
+        maker_idx_price.insert(index, current_maker_order_info);
+    }
+}
+
+pub fn execute_perp_order() -> Result<(u64,u64)> {
+    let base_asset_amount = 0_u64;
+    let quote_asset_amount = 0_u64;
+    
+    Ok((base_asset_amount,quote_asset_amount))
 }
