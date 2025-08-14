@@ -1,26 +1,7 @@
 use anchor_lang::prelude::*;
 use crate::utils::constant::*;
+use crate::utils::constraint::*;
 
-#[derive(Clone, Copy, AnchorSerialize, AnchorDeserialize, PartialEq, Debug, Eq, Default)]
-pub enum OrderType {
-    Market,
-    #[default]
-    Limit,
-}
-
-#[derive(Clone, Copy, AnchorSerialize, AnchorDeserialize, PartialEq, Debug, Eq, Default)]
-pub enum OrderStatus {
-    #[default]
-    Open,
-    Filled,
-}
-
-#[derive(Clone, Copy, AnchorSerialize, AnchorDeserialize, PartialEq, Debug, Eq, Default)]
-pub enum PositionDirection {
-    #[default]
-    Long,
-    Short,
-}
 
 #[account]
 pub struct Order {
@@ -61,5 +42,12 @@ impl Order {
         require!(self.leverage >= MIN_LEVERAGE && self.leverage <= MAX_LEVERAGE, crate::utils::error::Perperror::InvalidLeverage);
         require!(self.price > 0, crate::utils::error::Perperror::InvalidPrice);
         Ok(())
+    }
+
+    pub fn opposite(&self) -> PositionDirection {
+        match self.direction {
+            PositionDirection::Long => PositionDirection::Short,
+            PositionDirection::Short => PositionDirection::Long
+        }
     }
 }

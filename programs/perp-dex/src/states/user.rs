@@ -4,7 +4,7 @@ use anchor_lang::prelude::*;
 use super::Order;
 use super::PerpPosition;
 use crate::utils::constant::*;
-use crate::OrderStatus;
+use crate::utils::constraint::OrderStatus;
 
 #[account]
 pub struct User {

@@ -1,5 +1,5 @@
 use anchor_lang::prelude::*;
-use crate::{states::user::User, OrderType, PositionDirection};
+use crate::{states::user::User};
 
 pub fn can_sign_for_user(user: &Account<User>, signer: &Signer) -> anchor_lang::Result<bool> {
     Ok(user.authority.eq(signer.key))
@@ -27,4 +27,33 @@ pub struct OrderParams {
     pub price: u64,
     pub market_index: u16, 
     pub leverage: u64,
+}
+
+
+#[derive(AnchorSerialize, AnchorDeserialize)]
+pub enum PerpFulfillmentMethod {
+    AMM(Option<u64>),
+    Match(Pubkey, u16, u64),
+}
+
+
+#[derive(Clone, Copy, AnchorSerialize, AnchorDeserialize, PartialEq, Debug, Eq, Default)]
+pub enum OrderType {
+    Market,
+    #[default]
+    Limit,
+}
+
+#[derive(Clone, Copy, AnchorSerialize, AnchorDeserialize, PartialEq, Debug, Eq, Default)]
+pub enum OrderStatus {
+    #[default]
+    Open,
+    Filled,
+}
+
+#[derive(Clone, Copy, AnchorSerialize, AnchorDeserialize, PartialEq, Debug, Eq, Default)]
+pub enum PositionDirection {
+    #[default]
+    Long,
+    Short,
 }

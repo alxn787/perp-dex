@@ -1,5 +1,6 @@
 use anchor_lang::prelude::*;
-use crate::{utils::error::Perperror, PositionDirection};
+use crate::utils::error::Perperror;
+use crate::utils::constraint::PositionDirection;
 
 #[account]
 pub struct PerpPosition {
