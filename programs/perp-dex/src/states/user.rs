@@ -14,6 +14,7 @@ pub struct User {
     pub perp_positions: [PerpPosition; MAX_POSITIONS_PER_USER],
     pub next_order_id: u64,
     pub open_orders: u64,
+    pub account_id: u16,
 }
 
 impl User {

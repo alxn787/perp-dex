@@ -16,7 +16,7 @@ pub struct InitializePerpMarket<'info> {
         ],
         bump
     )]
-    pub market: Box<Account<'info, PerpMarket>>,
+    pub market: Account<'info, PerpMarket>,
 
     pub perp_market_mint: Account<'info, Mint>,
 

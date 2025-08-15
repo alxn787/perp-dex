@@ -1,8 +1,6 @@
-use std::ops::RangeFull;
-
 use crate::states::order::Order;
 use crate::states::amm::Amm;
-use crate::utils::constraint::PerpFulfillmentMethod;
+use crate::utils::constraint::FullfillmentMethod;
 use crate::utils::constraint::PositionDirection;
 use anchor_lang::prelude::*;
 
@@ -11,7 +9,7 @@ pub fn get_types_of_filling(
     maker_id_index_price: Vec<(Pubkey, usize, u64)>,
     amm: &Amm,
     limit_price: Option<u64>,
-)->Result<Vec<PerpFulfillmentMethod>>{
+)->Result<Vec<FullfillmentMethod>>{
 
     let mut types_of_filling = Vec::with_capacity(8);
 
@@ -44,19 +42,19 @@ pub fn get_types_of_filling(
         };
 
         if !is_maker_better_than_amm {
-            types_of_filling.push(PerpFulfillmentMethod::AMM(Some(maker_order_price)));
+            types_of_filling.push(FullfillmentMethod::AMM(Some(maker_order_price)));
             amm_price = maker_order_price;
         }
 
-        // taker crosses maker , maker is better than amm , add maker to types of filling 
-        types_of_filling.push(PerpFulfillmentMethod::Match(maker_key, maker_order_idx as u16, maker_order_price));
+        // taker crosses maker , maker is better than amm , add maker order
+        types_of_filling.push(FullfillmentMethod::Match(maker_key, maker_order_idx as u16, maker_order_price));
 
         if types_of_filling.len() >= 6 {
             break;
         }
     }
 
-    // at last fill the rem with amm
+    // at last fill the remaining with amm
     
     let taker_crosses_amm = match limit_price {
         Some(taker_price) => does_order_cross(&maker_direction, amm_price, taker_price),
@@ -64,7 +62,7 @@ pub fn get_types_of_filling(
     };
 
     if taker_crosses_amm {
-        types_of_filling.push(PerpFulfillmentMethod::AMM(None));
+        types_of_filling.push(FullfillmentMethod::AMM(None));
     }
     
 

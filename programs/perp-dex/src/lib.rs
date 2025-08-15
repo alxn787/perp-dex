@@ -19,8 +19,13 @@ pub mod perp_dex {
     pub fn initialize_market(ctx: Context<InitializePerpMarket>, market_params: InitializeMarketParams) -> Result<()> {
         handle_initialize_perp_market(ctx, market_params)
     }
-    pub fn place_order(ctx: Context<PlaceOrder>, params: OrderParams) -> Result<()> {
-        handle_place_order(ctx, params)
+
+    pub fn initialize_user(ctx: Context<InitializeUser>, account_id:u16) -> Result<()> {
+        handle_initialize_user(ctx, account_id)
+    } 
+
+    pub fn place_order(ctx: Context<PlaceOrder>, order_params: OrderParams) -> Result<()> {
+        handle_place_order(ctx, order_params)
     }
 
     pub fn fill_order(ctx: Context<FillOrder>, order_id: Option<u64>) -> Result<()> {

@@ -31,7 +31,7 @@ pub struct OrderParams {
 
 
 #[derive(AnchorSerialize, AnchorDeserialize)]
-pub enum PerpFulfillmentMethod {
+pub enum FullfillmentMethod {
     AMM(Option<u64>),
     Match(Pubkey, u16, u64),
 }

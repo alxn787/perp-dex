@@ -2,6 +2,8 @@ pub mod init_market;
 pub use init_market::*;
 pub mod init_state;
 pub use init_state::*;
+pub mod init_user;
+pub use init_user::*;
 pub mod place_order;
 pub use place_order::*;
 pub mod fill_order;
