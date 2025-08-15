@@ -10,7 +10,7 @@ pub struct Order {
     pub base_asset_amount: u64,
     pub base_asset_amount_filled: u64,
     pub quote_asset_amount_filled: u64,
-    pub price: u64,
+    pub price: Option<u64>,
     pub direction: PositionDirection,
     pub order_type: OrderType,
     pub leverage: u64,
@@ -40,7 +40,7 @@ impl Order {
     pub fn validate(&self) -> Result<()> {
         require!(self.base_asset_amount >= MIN_ORDER_AMOUNT, crate::utils::error::Perperror::InvalidAmount);
         require!(self.leverage >= MIN_LEVERAGE && self.leverage <= MAX_LEVERAGE, crate::utils::error::Perperror::InvalidLeverage);
-        require!(self.price > 0, crate::utils::error::Perperror::InvalidPrice);
+        require!(self.price.unwrap() > 0, crate::utils::error::Perperror::InvalidPrice);
         Ok(())
     }
 

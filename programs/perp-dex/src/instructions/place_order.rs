@@ -68,7 +68,7 @@ pub fn place_order(
         base_asset_amount: params.base_asset_amount,
         base_asset_amount_filled: 0,
         quote_asset_amount_filled: 0,
-        price: params.price,
+        price: Some(params.price),
         direction: params.direction,
         order_type: params.order_type,
         leverage: params.leverage,

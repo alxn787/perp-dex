@@ -145,7 +145,7 @@ pub fn  get_maker_id_index_price(
 
             let _maker_order = &maker.orders[maker_order_idx];
 
-            let taker_order_price = taker_order.price;
+            let taker_order_price = taker_order.price.unwrap();
 
             if maker_order_price > taker_order_price {
                 continue;
@@ -177,7 +177,7 @@ fn get_idx_price_for_maker(
             continue;
         }
 
-        idx_price.push((order_index, order.price));
+        idx_price.push((order_index, order.price.unwrap()));
     }
     Ok(idx_price)
 }
