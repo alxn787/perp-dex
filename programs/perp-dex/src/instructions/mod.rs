@@ -6,3 +6,5 @@ pub mod place_order;
 pub use place_order::*;
 pub mod fill_order;
 pub use fill_order::*;
+pub mod fill_methods;
+pub use fill_methods::*;

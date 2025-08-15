@@ -19,4 +19,12 @@ impl Amm {
                            8 + // last_funding_rate_ts (i64)
                            8;  // amm_price (u64)
                            // Total: 80 bytes
+
+    pub fn get_bid_price(&self) -> u64 {
+        self.base_asset_reserve / self.quote_asset_reserve
+    }
+
+    pub fn get_ask_price(&self) -> u64 {
+        self.quote_asset_reserve / self.base_asset_reserve
+    }
 }

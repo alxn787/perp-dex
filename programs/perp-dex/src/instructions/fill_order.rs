@@ -5,7 +5,7 @@ use crate::states::user::User;
 use crate::utils::error::Perperror;
 use crate::states::user_map::UserMap;
 use crate::states::perp_market_map::PerpMarketMap;
-use crate::{Order, OrderStatus, OrderType, PositionDirection};
+use crate::{get_types_of_filling, Order, OrderStatus, OrderType, PositionDirection};
 
 #[derive(Accounts)]
 pub struct FillOrder<'info> {
@@ -71,7 +71,7 @@ pub fn fill_perp_order_controller(
     maker_map: &UserMap,
     order_id: u64,
     market_index: u16,
-)->Result<()>{
+)->Result<(u64,u64)>{
 
     let user_key = user.authority;
 
@@ -85,7 +85,9 @@ pub fn fill_perp_order_controller(
     .perp_positions // Fix: should be perp_positions, not positions
     .iter()
     .position(|position| position.market_index == market_index as u64) // Fix: cast to u64
-    .ok_or(Perperror::UserHasNoPositionInMarket)?; // Fix: use correct error
+    .ok_or(Perperror::UserHasNoPositionInMarket)?; 
+
+    let existing_base_asset_amount = user.perp_positions[position_index].base_asset_amount;
 
 
     let maker_id_index_price = get_maker_id_index_price(
@@ -95,9 +97,15 @@ pub fn fill_perp_order_controller(
         &user.orders[order_index],
     )?;
 
-    let(base_asset_amount, quote_asset_amount) = execute_perp_order()?;
+    let(base_asset_amount, quote_asset_amount) = execute_perp_order(
+        user,
+        order_index,
+        maker_map,
+        maker_id_index_price,
+        perp_market_map,
+    )?;
     
-    Ok(())
+    Ok((base_asset_amount,quote_asset_amount))
 }
 
 pub fn  get_maker_id_index_price(
@@ -193,9 +201,28 @@ fn add_to_maker_order_info(
     }
 }
 
-pub fn execute_perp_order() -> Result<(u64,u64)> {
+pub fn execute_perp_order(
+    user: &User,
+    order_index: usize,
+    maker_map: &UserMap,
+    maker_id_index_price: Vec<(Pubkey, usize, u64)>,
+    perp_market_map: &mut PerpMarketMap,
+) -> Result<(u64,u64)> {
     let base_asset_amount = 0_u64;
     let quote_asset_amount = 0_u64;
+
+    let market_index = user.orders[order_index].market_index;
+
+    let market = perp_market_map.get_ref(market_index).ok_or(Perperror::InvalidMarketIndex)?;
+
+    let limit_price = user.orders[order_index].price;
+
+    let types_of_filling = get_types_of_filling(
+        &user.orders[order_index],
+        maker_id_index_price,
+        &market.amm,
+        limit_price,
+    )?;
     
     Ok((base_asset_amount,quote_asset_amount))
 }
