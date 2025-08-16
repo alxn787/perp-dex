@@ -2,6 +2,8 @@ use crate::states::order::Order;
 use crate::states::amm::Amm;
 use crate::utils::constraint::FullfillmentMethod;
 use crate::utils::constraint::PositionDirection;
+use crate::states::user::User;
+use crate::states::market::PerpMarket;
 use anchor_lang::prelude::*;
 
 pub fn get_types_of_filling(
@@ -55,7 +57,6 @@ pub fn get_types_of_filling(
     }
 
     // at last fill the remaining with amm
-    
     let taker_crosses_amm = match limit_price {
         Some(taker_price) => does_order_cross(&maker_direction, amm_price, taker_price),
         None => true,
@@ -65,7 +66,6 @@ pub fn get_types_of_filling(
         types_of_filling.push(FullfillmentMethod::AMM(None));
     }
     
-
     Ok(types_of_filling)
 }   
 
@@ -78,4 +78,26 @@ pub fn does_order_cross(
         PositionDirection::Long => limit_price > maker_order_price,
         PositionDirection::Short => limit_price < maker_order_price,
     }
+}
+
+pub fn fill_with_amm(
+    user: &mut User,
+    order_index: usize,
+    limit_price: u64,
+    market: &mut PerpMarket,
+    maker_price: u64,
+)->Result<(u64, u64)>{
+
+    Ok((0,0))
+}
+
+pub fn fill_with_match(
+    taker: &mut User,
+    taker_order_index: usize,
+    maker_price: u64,
+    maker: &mut User,
+    maker_order_index: usize,
+)->Result<(u64, u64)>{
+
+    Ok((0,0))
 }

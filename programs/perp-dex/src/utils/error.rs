@@ -36,4 +36,8 @@ pub enum Perperror {
     OrderNotFound,
     #[msg("Invalid User Map")]
     InvalidUserMap,
+    #[msg("Invalid Maker Key")]
+    InvalidMakerKey,
+    #[msg("Invalid Maker Order Index")]
+    InvalidMakerOrderIndex,
 }

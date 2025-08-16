@@ -1,3 +1,5 @@
+use std::collections::BTreeMap;
+
 use anchor_lang::prelude::*;
 use crate::utils::constraint::can_sign_for_user;
 use crate::states::state::State;
@@ -5,7 +7,7 @@ use crate::states::user::User;
 use crate::utils::error::Perperror;
 use crate::states::user_map::UserMap;
 use crate::states::perp_market_map::PerpMarketMap;
-use crate::{get_types_of_filling, Order, OrderStatus, OrderType, PositionDirection};
+use crate::{fill_with_amm, fill_with_match, get_types_of_filling, FullfillmentMethod, Order, OrderStatus, OrderType, PositionDirection};
 
 #[derive(Accounts)]
 pub struct FillOrder<'info> {
@@ -48,14 +50,14 @@ pub fn fill_order(ctx: Context<FillOrder>, order_id: u64, market_index: u16)->Re
     let mut perp_market_map: PerpMarketMap = PerpMarketMap::try_from_slice(&perp_market_map.data.borrow())?;
 
     let user_map = &ctx.remaining_accounts[1];
-    let user_map: UserMap = UserMap::try_from_slice(&user_map.data.borrow())?;
+    let mut user_map: UserMap = UserMap::try_from_slice(&user_map.data.borrow())?;
 
     fill_perp_order_controller(
         &ctx.accounts.state,
         &mut ctx.accounts.user,
         &mut ctx.accounts.filler,
         &mut perp_market_map,
-        &user_map,
+        &mut user_map,
         order_id,
         market_index,
     )?;
@@ -65,10 +67,10 @@ pub fn fill_order(ctx: Context<FillOrder>, order_id: u64, market_index: u16)->Re
 
 pub fn fill_perp_order_controller(
     _state: &State,
-    user: &User,
+    user: &mut User,
     _filler: &mut Account<User>,
     perp_market_map: &mut PerpMarketMap,
-    maker_map: &UserMap,
+    maker_map: &mut UserMap,
     order_id: u64,
     market_index: u16,
 )->Result<(u64,u64)>{
@@ -202,28 +204,82 @@ fn add_to_maker_order_info(
 }
 
 pub fn execute_perp_order(
-    user: &User,
-    order_index: usize,
-    maker_map: &UserMap,
+    taker: &mut User,
+    taker_order_index: usize,
+    maker_map: &mut UserMap,
     maker_id_index_price: Vec<(Pubkey, usize, u64)>,
     perp_market_map: &mut PerpMarketMap,
 ) -> Result<(u64,u64)> {
     let base_asset_amount = 0_u64;
     let quote_asset_amount = 0_u64;
 
-    let market_index = user.orders[order_index].market_index;
+    let market_index = taker.orders[taker_order_index].market_index;
 
     let market = perp_market_map.get_ref(market_index).ok_or(Perperror::InvalidMarketIndex)?;
 
-    let limit_price = user.orders[order_index].price;
+    let limit_price = taker.orders[taker_order_index].price;
 
     let types_of_filling = get_types_of_filling(
-        &user.orders[order_index],
+        &taker.orders[taker_order_index],
         maker_id_index_price,
         &market.amm,
         limit_price,
     )?;
-    
+
+    if types_of_filling.is_empty(){
+        return Ok((0,0));
+    }
+    let maker_direction = taker.orders[taker_order_index].opposite();
+    let mut maker_fill_map : BTreeMap<Pubkey, i64> = BTreeMap::new();
+
+
+    for type_of_filling in types_of_filling.iter() {
+        let mut market = perp_market_map.get_mut(market_index).ok_or(Perperror::InvalidMarketIndex)?;
+        let user_order_direction = taker.orders[taker_order_index].direction;
+
+        let(filled_base_asset_amount, filled_quote_asset_amount) = match type_of_filling {
+
+            FullfillmentMethod::AMM(Some(maker_price)) => {
+                let(base_asset_filled, quote_asset_filled) = 
+                    fill_with_amm(
+                        taker,
+                        taker_order_index,
+                        maker_price.clone(),
+                        market,
+                    )?;
+
+                (base_asset_filled, quote_asset_filled)
+            }
+
+            FullfillmentMethod::Match(maker_key, maker_order_idx, maker_price) => {
+
+                let mut maker = maker_map.0.get_mut(&maker_key).ok_or(Perperror::InvalidMakerKey)?;
+
+                let(base_asset_filled, quote_asset_filled) = fill_with_match(
+                    taker,
+                    taker_order_index,
+                    maker,
+                    *maker_order_idx as usize,
+                    *maker_price,
+                )?;
+
+                (base_asset_filled, quote_asset_filled)
+            }
+            FullfillmentMethod::AMM(None) => {
+
+                let(base_asset_filled, quote_asset_filled) = 
+                    fill_with_amm(
+                            taker,
+                            taker_order_index,
+                            limit_price.unwrap(),
+                            market,
+                    )?;   
+
+            (base_asset_filled, quote_asset_filled)
+            }
+        };
+    }
+
     
     Ok((base_asset_amount,quote_asset_amount))
 }
