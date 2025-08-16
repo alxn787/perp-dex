@@ -86,14 +86,17 @@ pub fn does_order_cross(
 pub fn fill_with_amm(
     user: &mut User,
     order_index: usize,
-    _limit_price: u64,
+    _limit_price: Option<u64>,
     market: &mut PerpMarket,
 )->Result<(u64, u64)>{
 
    
     let existing_base_asset_amount =  user.orders[order_index].base_asset_amount;
 
-    let quote_amount = market.amm.calculate_quote_for_base_with_limit(existing_base_asset_amount , _limit_price)?;
+    let quote_amount = match _limit_price {
+        Some(limit_price) => market.amm.calculate_quote_for_base_with_limit(existing_base_asset_amount , limit_price)?,
+        None => market.amm.calculate_quote_for_base_no_limit(existing_base_asset_amount)?,
+    };
 
     if quote_amount == 0 {
         return Ok((0,0));

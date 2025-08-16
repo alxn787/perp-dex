@@ -244,9 +244,9 @@ pub fn execute_perp_order(
                     fill_with_amm(
                         taker,
                         taker_order_index,
-                        maker_price.clone(),
+                        Some(*maker_price),
                         market,
-                        
+
                     )?;
 
                 (base_asset_filled, quote_asset_filled)
@@ -272,7 +272,7 @@ pub fn execute_perp_order(
                     fill_with_amm(
                             taker,
                             taker_order_index,
-                            limit_price.unwrap(),
+                            None,
                             market,
                     )?;   
 
