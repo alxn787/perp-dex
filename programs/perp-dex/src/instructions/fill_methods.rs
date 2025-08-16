@@ -1,3 +1,5 @@
+use std::cmp::min;
+
 use crate::get_position_index;
 use crate::states::order::Order;
 use crate::states::amm::Amm;
@@ -104,7 +106,7 @@ pub fn fill_with_amm(
 
     market.amm.execute_trade(existing_base_asset_amount, quote_amount)?;
 
-    update_order_after_fill(
+    update_order_after_filling(
         &mut user.orders[order_index],
         existing_base_asset_amount,
         quote_amount
@@ -117,15 +119,56 @@ pub fn fill_with_amm(
 pub fn fill_with_match(
     taker: &mut User,
     taker_order_index: usize,
-    maker_price: u64,
+    taker_limit_price: Option<u64>,
     maker: &mut User,
     maker_order_index: usize,
+    maker_price: u64,
 )->Result<(u64, u64)>{
+
+    let maker_direction = maker.orders[maker_order_index].direction;
+
+    let taker_limit_price = match taker_limit_price {
+        Some(limit_price) => limit_price,
+        None => maker_price,
+    };
+
+    require!(taker.orders[taker_order_index].opposite() == maker.orders[maker_order_index].direction, Perperror::InvalidDirection);
+
+
+    let taker_base_asset_amount = taker.orders[taker_order_index]
+    .get_unfilled_base()?;
+
+    let maker_base_asset_amount = maker.orders[maker_order_index].get_unfilled_base()?;
+
+    let does_order_cross = does_order_cross(&maker_direction, maker_price, taker_limit_price);
+
+    if !does_order_cross {
+        return Ok((0,0));
+    }
+
+    let (filled_base_asset_amount, filled_quote_asset_amount) = calculate_fill_by_match(
+        maker_base_asset_amount,
+        maker_price,
+        taker_base_asset_amount,    
+    )?;
+
+    update_order_after_filling(
+        &mut maker.orders[maker_order_index],
+        filled_base_asset_amount,
+        filled_quote_asset_amount
+    )?;
+
+    update_order_after_filling(
+        &mut taker.orders[taker_order_index],
+        filled_base_asset_amount,
+        filled_quote_asset_amount
+    )?;
+
 
     Ok((0,0))
 }
 
-pub fn update_order_after_fill(
+pub fn update_order_after_filling(
     order: &mut Order,
     base_asset_amount: u64,
     quote_asset_amount: u64,
@@ -143,4 +186,15 @@ pub fn update_order_after_fill(
     }
 
     Ok(())
+}
+
+pub fn calculate_fill_by_match(
+    maker_base_asset_amount: u64,
+    maker_price: u64,
+    taker_base_asset_amount: u64,
+)->Result<(u64, u64)>{
+    let filled_base_asset_amount = min(maker_base_asset_amount, taker_base_asset_amount);
+    let filled_quote_asset_amount = filled_base_asset_amount * maker_price;
+
+    Ok((filled_base_asset_amount, filled_quote_asset_amount))
 }

@@ -254,11 +254,12 @@ pub fn execute_perp_order(
 
             FullfillmentMethod::Match(maker_key, maker_order_idx, maker_price) => {
 
-                let mut maker = maker_map.0.get_mut(&maker_key).ok_or(Perperror::InvalidMakerKey)?;
+                let maker = maker_map.0.get_mut(&maker_key).ok_or(Perperror::InvalidMakerKey)?;
 
                 let(base_asset_filled, quote_asset_filled) = fill_with_match(
                     taker,
                     taker_order_index,
+                    limit_price,
                     maker,
                     *maker_order_idx as usize,
                     *maker_price,
@@ -267,7 +268,6 @@ pub fn execute_perp_order(
                 (base_asset_filled, quote_asset_filled)
             }
             FullfillmentMethod::AMM(None) => {
-
                 let(base_asset_filled, quote_asset_filled) = 
                     fill_with_amm(
                             taker,

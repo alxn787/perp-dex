@@ -42,4 +42,6 @@ pub enum Perperror {
     InvalidMakerOrderIndex,
     #[msg("Arithmetic Overflow")]
     ArithmeticOverflow,
+    #[msg("Invalid Direction")]
+    InvalidDirection,
 }
