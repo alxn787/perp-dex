@@ -1,6 +1,7 @@
 use anchor_lang::prelude::*;
 use crate::utils::constant::*;
 use crate::utils::constraint::*;
+use crate::utils::Perperror;
 
 
 #[account]
@@ -49,5 +50,16 @@ impl Order {
             PositionDirection::Long => PositionDirection::Short,
             PositionDirection::Short => PositionDirection::Long
         }
+    }
+
+    pub fn get_unfilled_base(
+        &self,
+    ) -> Result<u64> {
+        let base_asset_amount_unfilled = self
+            .base_asset_amount
+            .checked_sub(self.base_asset_amount_filled)
+            .ok_or(Perperror::ArithmeticOverflow)?;
+
+        Ok(base_asset_amount_unfilled)
     }
 }

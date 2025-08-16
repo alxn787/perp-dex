@@ -40,4 +40,6 @@ pub enum Perperror {
     InvalidMakerKey,
     #[msg("Invalid Maker Order Index")]
     InvalidMakerOrderIndex,
+    #[msg("Arithmetic Overflow")]
+    ArithmeticOverflow,
 }

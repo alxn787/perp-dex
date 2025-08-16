@@ -1,9 +1,12 @@
+use crate::get_position_index;
 use crate::states::order::Order;
 use crate::states::amm::Amm;
 use crate::utils::constraint::FullfillmentMethod;
 use crate::utils::constraint::PositionDirection;
 use crate::states::user::User;
 use crate::states::market::PerpMarket;
+use crate::utils::Perperror;
+use crate::OrderStatus;
 use anchor_lang::prelude::*;
 
 pub fn get_types_of_filling(
@@ -83,12 +86,29 @@ pub fn does_order_cross(
 pub fn fill_with_amm(
     user: &mut User,
     order_index: usize,
-    limit_price: u64,
+    _limit_price: u64,
     market: &mut PerpMarket,
-    maker_price: u64,
 )->Result<(u64, u64)>{
 
-    Ok((0,0))
+   
+    let existing_base_asset_amount =  user.orders[order_index].base_asset_amount;
+
+    let quote_amount = market.amm.calculate_quote_for_base_with_limit(existing_base_asset_amount , _limit_price)?;
+
+    if quote_amount == 0 {
+        return Ok((0,0));
+    }
+
+    market.amm.execute_trade(existing_base_asset_amount, quote_amount)?;
+
+    update_order_after_fill(
+        &mut user.orders[order_index],
+        existing_base_asset_amount,
+        quote_amount
+    )?;
+
+
+    Ok((existing_base_asset_amount, quote_amount))
 }
 
 pub fn fill_with_match(
@@ -100,4 +120,24 @@ pub fn fill_with_match(
 )->Result<(u64, u64)>{
 
     Ok((0,0))
+}
+
+pub fn update_order_after_fill(
+    order: &mut Order,
+    base_asset_amount: u64,
+    quote_asset_amount: u64,
+) -> Result<()> {
+    order.base_asset_amount_filled = order.base_asset_amount_filled.checked_add(base_asset_amount)
+    .ok_or(Perperror::ArithmeticOverflow)?;
+
+    order.quote_asset_amount_filled = order
+        .quote_asset_amount_filled
+        .checked_add(quote_asset_amount)
+        .ok_or(Perperror::ArithmeticOverflow)?;
+
+    if order.get_unfilled_base()? == 0 {
+        order.status = OrderStatus::Filled;
+    }
+
+    Ok(())
 }
