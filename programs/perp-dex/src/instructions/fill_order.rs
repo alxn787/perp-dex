@@ -210,8 +210,8 @@ pub fn execute_perp_order(
     maker_id_index_price: Vec<(Pubkey, usize, u64)>,
     perp_market_map: &mut PerpMarketMap,
 ) -> Result<(u64,u64)> {
-    let base_asset_amount = 0_u64;
-    let quote_asset_amount = 0_u64;
+    let mut base_asset_amount = 0_u64;
+    let mut quote_asset_amount = 0_u64;
 
     let market_index = taker.orders[taker_order_index].market_index;
 
@@ -263,6 +263,7 @@ pub fn execute_perp_order(
                     maker,
                     *maker_order_idx as usize,
                     *maker_price,
+                    &mut maker_fill_map,
                 )?;
 
                 (base_asset_filled, quote_asset_filled)
@@ -279,6 +280,8 @@ pub fn execute_perp_order(
             (base_asset_filled, quote_asset_filled)
             }
         };
+        base_asset_amount = base_asset_amount.checked_add(filled_base_asset_amount).ok_or(Perperror::ArithmeticOverflow)?;
+        quote_asset_amount = quote_asset_amount.checked_add(filled_quote_asset_amount).ok_or(Perperror::ArithmeticOverflow)?;
     }
 
     

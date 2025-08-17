@@ -1,4 +1,5 @@
 use std::cmp::min;
+use std::collections::BTreeMap;
 
 use crate::get_position_index;
 use crate::states::order::Order;
@@ -9,6 +10,7 @@ use crate::states::user::User;
 use crate::states::market::PerpMarket;
 use crate::utils::Perperror;
 use crate::OrderStatus;
+use crate::PerpPosition;
 use anchor_lang::prelude::*;
 
 pub fn get_types_of_filling(
@@ -123,6 +125,7 @@ pub fn fill_with_match(
     maker: &mut User,
     maker_order_index: usize,
     maker_price: u64,
+    maker_fill_map: &mut BTreeMap<Pubkey, i64>,
 )->Result<(u64, u64)>{
 
     let maker_direction = maker.orders[maker_order_index].direction;
@@ -152,6 +155,17 @@ pub fn fill_with_match(
         taker_base_asset_amount,    
     )?;
 
+    if filled_base_asset_amount != 0 {
+        update_maker_fills_map(
+            maker_fill_map,
+            &maker.authority.key(),
+            maker_direction,
+            filled_base_asset_amount
+        )?;
+    }
+
+
+
     update_order_after_filling(
         &mut maker.orders[maker_order_index],
         filled_base_asset_amount,
@@ -165,7 +179,7 @@ pub fn fill_with_match(
     )?;
 
 
-    Ok((0,0))
+    Ok((filled_base_asset_amount, filled_quote_asset_amount))
 }
 
 pub fn update_order_after_filling(
@@ -198,3 +212,26 @@ pub fn calculate_fill_by_match(
 
     Ok((filled_base_asset_amount, filled_quote_asset_amount))
 }
+
+
+fn update_maker_fills_map(
+    map: &mut BTreeMap<Pubkey, i64>,
+    maker_key: &Pubkey,
+    maker_direction: PositionDirection,
+    fill: u64,
+) -> Result<()> {
+    let signed_fill = match maker_direction {
+        PositionDirection::Long => fill as i64,
+        PositionDirection::Short => -(fill as i64),
+    };
+
+    if let Some(maker_filled) = map.get_mut(maker_key) {
+        *maker_filled = maker_filled.checked_add(signed_fill).ok_or(Perperror::ArithmeticOverflow)?;
+    } else {
+        map.insert(*maker_key, signed_fill);
+    }
+
+    Ok(())
+}
+
+
