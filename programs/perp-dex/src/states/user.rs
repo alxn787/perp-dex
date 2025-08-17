@@ -46,4 +46,5 @@ impl User {
     pub fn get_order(&self, order_id: u64) -> Option<&Order>{
         self.orders.iter().find(|order| order.order_id == order_id && order.status == OrderStatus::Open)
     }
+
 }

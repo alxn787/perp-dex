@@ -10,3 +10,5 @@ pub mod fill_order;
 pub use fill_order::*;
 pub mod fill_methods;
 pub use fill_methods::*;
+pub mod deposit;
+pub use deposit::*;

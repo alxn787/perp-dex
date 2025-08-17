@@ -12,6 +12,7 @@ pub struct PerpPosition {
     pub pnl: i64,
     pub bids: u64,
     pub asks: u64,
+    pub collateral: u64,
 }
 
 impl PerpPosition {
@@ -23,8 +24,9 @@ impl PerpPosition {
                            1 + // open_orders (u8)
                            8 + // pnl (i64)
                            8 + // bids (u64)
-                           8;  // asks (u64)
-                           // Total: 65 bytes
+                           8 + // asks (u64)
+                           8;  // collateral (u64)
+                           // Total: 73 bytes
 
     pub fn default() -> Self {
         Self {
@@ -35,7 +37,8 @@ impl PerpPosition {
             open_orders: 0,
             pnl: 0,
             bids: 0,
-            asks: 0,    
+            asks: 0,   
+            collateral: 0,
         }
     }
 
@@ -102,4 +105,12 @@ pub fn update_bids_and_asks(user_positions: &mut PerpPosition, direction: Positi
         }
     }
     Ok(())
+}
+
+pub fn get_forced_position_from_market_index(user_positions: &mut PerpPositions, market_index: u16) -> Result<usize> {
+    let position_index = user_positions.iter().position(|pos| pos.market_index == market_index as u64);
+    match position_index {
+        Some(position_index) => Ok(position_index),
+        None => add_new_position(user_positions, market_index),
+    }
 }

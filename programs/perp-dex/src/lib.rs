@@ -13,7 +13,7 @@ declare_id!("B2NX28c1xzFMokwTSDDFpoB4XJPXaTJQ53EkeR6xzFsA");
 pub mod perp_dex {
     use super::*;
 
-    pub fn initializestate(ctx: Context<InitializeState>, perp_fee: u64) -> Result<()> {
+    pub fn initialize_state(ctx: Context<InitializeState>, perp_fee: u64) -> Result<()> {
         instructions::initialize_state(ctx, perp_fee)
     }
     pub fn initialize_market(ctx: Context<InitializePerpMarket>, market_params: InitializeMarketParams) -> Result<()> {
@@ -23,6 +23,10 @@ pub mod perp_dex {
     pub fn initialize_user(ctx: Context<InitializeUser>, account_id:u16) -> Result<()> {
         handle_initialize_user(ctx, account_id)
     } 
+
+    pub fn deposit(ctx: Context<Deposit>, market_index: u16, amount: u64) -> Result<()> {
+        handle_deposit(ctx, market_index, amount)
+    }
 
     pub fn place_order(ctx: Context<PlaceOrder>, order_params: OrderParams) -> Result<()> {
         handle_place_order(ctx, order_params)

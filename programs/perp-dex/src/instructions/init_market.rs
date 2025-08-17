@@ -23,7 +23,7 @@ pub struct InitializePerpMarket<'info> {
     #[account(init,
         payer = admin,
         seeds = [
-            b"quote_asset_vault".as_ref(),state.no_of_markets.to_le_bytes().as_ref()  
+            b"perp_market_vault".as_ref(),state.no_of_markets.to_le_bytes().as_ref()  
         ],
         bump,
         token::mint = perp_market_mint,
