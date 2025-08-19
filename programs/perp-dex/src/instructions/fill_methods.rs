@@ -1,7 +1,5 @@
 use std::cmp::min;
 use std::collections::BTreeMap;
-
-use crate::get_position_index;
 use crate::states::order::Order;
 use crate::states::amm::Amm;
 use crate::utils::constraint::FullfillmentMethod;
@@ -10,7 +8,6 @@ use crate::states::user::User;
 use crate::states::market::PerpMarket;
 use crate::utils::Perperror;
 use crate::OrderStatus;
-use crate::PerpPosition;
 use anchor_lang::prelude::*;
 
 pub fn get_types_of_filling(
@@ -163,8 +160,6 @@ pub fn fill_with_match(
             filled_base_asset_amount
         )?;
     }
-
-
 
     update_order_after_filling(
         &mut maker.orders[maker_order_index],

@@ -44,4 +44,14 @@ pub enum Perperror {
     ArithmeticOverflow,
     #[msg("Invalid Direction")]
     InvalidDirection,
+    #[msg("Unauthorized")]
+    Unauthorized,
+    #[msg("Price Deviation Too High")]
+    PriceDeviationTooHigh,
+    #[msg("Stale Oracle Price")]
+    StaleOraclePrice,
+    #[msg("Oracle Price Mismatch")]
+    OraclePriceMismatch,
+    #[msg("Invalid Oracle Authority")]
+    InvalidOracleAuthority,
 }

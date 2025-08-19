@@ -14,3 +14,5 @@ pub mod perp_market_map;
 pub use perp_market_map::*;
 pub mod user_map;
 pub use user_map::*;
+pub mod oracle;
+pub use oracle::*;

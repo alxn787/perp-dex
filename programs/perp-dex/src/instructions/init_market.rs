@@ -75,6 +75,8 @@ pub fn handle_initialize_perp_market(ctx: Context<InitializePerpMarket>,params:I
         last_funding_rate_ts: clock.unix_timestamp,
         amm_price: params.quote_asset_reserve / params.base_asset_reserve,
         k: params.base_asset_reserve * params.quote_asset_reserve,
+        oracle_price_weight: 5000, // Default to 50% oracle weight
+        last_oracle_update: clock.unix_timestamp,
     };
     
     market.bump = ctx.bumps.market;
