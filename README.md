@@ -129,6 +129,23 @@ Position Creation → Collateral Management → Leverage Control → Risk Manage
 - **Purpose**: Updates current market price from oracle
 - **What it does**: Refreshes price data and triggers AMM price updates
 
+### AMM Integration
+
+The Automated Market Maker (AMM) provides continuous liquidity for the perpetual futures markets:
+
+**Key Features**:
+- **Constant Product Formula**: Uses x * y = k formula for price discovery
+- **Oracle Price Weighting**: Combines AMM pricing with oracle feeds for stability
+- **Dynamic Reserves**: Automatically adjusts base and quote asset reserves
+- **Price Impact Calculation**: Determines price impact based on trade size
+- **Funding Rate Mechanism**: Implements funding rate calculations for perpetual markets
+
+**AMM Functions**:
+- `calculate_quote_for_base_with_limit`: Calculates quote amount with price limits
+- `calculate_quote_for_base_no_limit`: Calculates quote amount without price limits
+- `execute_trade`: Executes trades and updates reserves
+- `get_bid_price` / `get_ask_price`: Provides current bid/ask prices
+
 ## Order Execution Logic
 
 ### Fill Method Selection
@@ -137,15 +154,107 @@ The system intelligently chooses between:
 2. **AMM Liquidity**: For remaining unfilled amounts or when AMM provides better pricing
 3. **Hybrid Approach**: Optimal combination of both methods
 
+### Fulfillment Methods (`get_types_of_filling`)
+
+The `get_types_of_filling` function determines the optimal execution strategy for each order by analyzing available liquidity sources:
+
+**Function Purpose**: Analyzes order book and AMM to determine the best execution path
+**Parameters**:
+- `order`: The order to be filled
+- `maker_id_index_price`: Available maker orders with prices
+- `amm`: Current AMM state and pricing
+- `limit_price`: Optional price limit for the taker
+
+**Execution Strategy**:
+1. **Maker Order Analysis**: Evaluates each available maker order for price improvement
+2. **Price Comparison**: Compares maker prices against AMM pricing
+3. **Crossing Logic**: Determines if orders can cross (taker willing to pay maker's price)
+4. **Priority Ranking**: Orders execution methods by price priority (best first)
+5. **AMM Fallback**: Uses AMM liquidity for remaining unfilled amounts
+
+**Return Value**: Vector of `FullfillmentMethod` enum values:
+- `AMM(Option<u64>)`: AMM execution with optional price limit
+- `Match(Pubkey, u16, u64)`: Direct order matching with maker details
+
+### Fill Functions
+
+#### `fill_with_amm(user, order_index, limit_price, market)`
+
+**Purpose**: Executes order filling through the Automated Market Maker
+**Parameters**:
+- `user`: User account with the order
+- `order_index`: Index of the order to fill
+- `limit_price`: Optional maximum price for the fill
+- `market`: Market account with AMM configuration
+
+**What it does**:
+1. **Amount Calculation**: Determines base asset amount to fill
+2. **Quote Calculation**: Computes required quote asset amount based on AMM pricing
+3. **Price Validation**: Ensures fill price meets limit requirements
+4. **AMM Execution**: Executes the trade through the AMM algorithm
+5. **Order Update**: Updates order status and fill amounts
+6. **Position Tracking**: Maintains accurate position records
+
+**Return Value**: Tuple of (base_asset_amount_filled, quote_asset_amount_filled)
+
+#### `fill_with_match(taker, taker_order_index, taker_limit_price, maker, maker_order_index, maker_price, maker_fill_map)`
+
+**Purpose**: Executes direct order matching between taker and maker orders
+**Parameters**:
+- `taker`: User placing the order to be filled
+- `taker_order_index`: Index of taker's order
+- `taker_limit_price`: Maximum price taker is willing to pay
+- `maker`: User with the opposite order
+- `maker_order_index`: Index of maker's order
+- `maker_price`: Price of maker's order
+- `maker_fill_map`: Tracking map for maker fills
+
+**What it does**:
+1. **Direction Validation**: Ensures orders are in opposite directions (long vs short)
+2. **Crossing Check**: Verifies if orders can cross at maker's price
+3. **Fill Calculation**: Determines fillable amounts for both orders
+4. **Order Updates**: Updates both taker and maker order status
+5. **Fill Tracking**: Maintains maker fill map for position calculations
+6. **Status Management**: Updates order status to filled when complete
+
+**Return Value**: Tuple of (base_asset_amount_filled, quote_asset_amount_filled)
+
+### Helper Functions
+
+#### `update_order_after_filling(order, base_asset_amount, quote_asset_amount)`
+**Purpose**: Updates order status and fill amounts after execution
+**What it does**:
+- Increments filled amounts for base and quote assets
+- Updates order status to "Filled" when completely filled
+- Maintains accurate order tracking
+
+#### `calculate_fill_by_match(maker_base_asset_amount, maker_price, taker_base_asset_amount)`
+**Purpose**: Calculates the actual fillable amounts between two orders
+**What it does**:
+- Determines the minimum fillable amount between maker and taker
+- Calculates corresponding quote asset amount based on maker's price
+- Ensures no over-filling occurs
+
+#### `does_order_cross(maker_direction, maker_order_price, limit_price)`
+**Purpose**: Determines if an order can cross at the given price
+**Logic**:
+- **Long Orders**: Cross when taker's limit price > maker's ask price
+- **Short Orders**: Cross when taker's limit price < maker's bid price
+
+### Execution Flow Summary
+
+1. **Order Analysis**: `get_types_of_filling` analyzes available liquidity
+2. **Method Selection**: Chooses optimal execution path (matching vs AMM)
+3. **Order Execution**: 
+   - Direct matching via `fill_with_match`
+   - AMM liquidity via `fill_with_amm`
+4. **Status Updates**: Updates order status and fill amounts
+5. **Position Tracking**: Maintains accurate position records
+
 ### Price Priority
 - Orders are filled based on price priority (best price first)
 - Market orders execute immediately at best available prices
 - Limit orders only execute when price conditions are met
-
-### Leverage and Risk Management
-- Maximum leverage limits per market
-- Initial and maintenance margin requirements
-- Automatic position monitoring and risk controls
 
 ## Technical Features
 
